@@ -18,6 +18,7 @@ import (
 )
 
 var typeName string
+var packageName string
 var optionInterfaceName string
 var outputName string
 var applyFunctionName string
@@ -43,6 +44,7 @@ var Usage = func() {
 
 func initFlags() {
 	flag.StringVar(&typeName, "type", "", "name of struct to create options for")
+	flag.StringVar(&packageName, "package", "", "name of the package where <type> is declared (default is all packages)")
 	flag.BoolVar(&createNewFunc, "new", true, "whether to create a function to return a new config")
 	flag.StringVar(&optionInterfaceName, "option", "Option", "name of the interface to use for options")
 	flag.StringVar(&imports, "imports", "", "a comma-separated list of packages with optional alias (e.g. time,url=net/url) ")
@@ -117,6 +119,10 @@ func main() {
 
 	success := false
 	for _, pkg := range pkgs {
+		if packageName != "" && pkg.Name != packageName {
+			continue
+		}
+
 		for _, file := range pkg.Syntax {
 			ast.Inspect(file, func(node ast.Node) bool {
 				found := writeOptionsFile(types, pkg.Name, node, pkg.Fset)
