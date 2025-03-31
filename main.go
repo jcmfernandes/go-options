@@ -107,7 +107,7 @@ func main() {
 
 	cfg := &packages.Config{
 		Mode:  packages.NeedSyntax | packages.NeedTypes | packages.NeedName,
-		Tests: false,
+		Tests: true,
 	}
 
 	pkgs, err := packages.Load(cfg)
@@ -115,19 +115,17 @@ func main() {
 		log.Fatalf("ERROR: Failed to load pacakges %s", err)
 	}
 
-	if len(pkgs) != 1 {
-		log.Fatalf("ERROR: expected a single package but %d packages were found", len(pkgs))
-	}
-
 	success := false
-	for _, file := range pkgs[0].Syntax {
-		ast.Inspect(file, func(node ast.Node) bool {
-			found := writeOptionsFile(types, pkgs[0].Name, node, pkgs[0].Fset)
-			if found {
-				success = true
-			}
-			return !found
-		})
+	for _, pkg := range pkgs {
+		for _, file := range pkg.Syntax {
+			ast.Inspect(file, func(node ast.Node) bool {
+				found := writeOptionsFile(types, pkg.Name, node, pkg.Fset)
+				if found {
+					success = true
+				}
+				return !found
+			})
+		}
 	}
 
 	if !success {
